@@ -1,0 +1,6 @@
+first_name,last_name,phone,email,location_code,segment
+John,Smith,+15551234567,john.smith@email.com,MN-001,6-week
+Jane,Doe,+15559876543,jane.doe@email.com,MN-002,4-week
+Bob,Johnson,+15555551234,bob.j@email.com,TX-001,8-week
+Sarah,Williams,5551112222,sarah.w@email.com,CA-001,4-week
+Mike,Brown,(555) 333-4444,mike.brown@email.com,FL-001,6-week
