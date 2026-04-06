@@ -50,32 +50,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Allowed login emails
-  const ALLOWED_EMAILS = [
-    'dogwoodtesting@meetezra.bot',
-    'rob@breezemarketing.ca',
-  ];
+  // Demo credentials
+  const DEMO_CREDENTIALS = {
+    username: 'ezradev',
+    password: 'dev123',
+  };
 
   /**
-   * Login function - restricted to specific emails
+   * Login function - uses demo credentials
    */
   const login = useCallback(async (credentials: LoginFormData) => {
     try {
       // Simulate API latency
       await sleep(800);
 
-      // Only allow specific emails to login
-      const emailLower = credentials.email.toLowerCase();
-      const isAllowed = ALLOWED_EMAILS.some(e => e.toLowerCase() === emailLower);
+      // Check if credentials match demo account
+      const usernameMatch = credentials.email.toLowerCase() === DEMO_CREDENTIALS.username.toLowerCase();
+      const passwordMatch = credentials.password === DEMO_CREDENTIALS.password;
       
-      if (!isAllowed) {
-        return { success: false, error: 'Invalid credentials. Please check your email and try again.' };
+      if (!usernameMatch || !passwordMatch) {
+        return { success: false, error: 'Invalid credentials. Please check your username and password.' };
       }
 
-      // Get demo user or create one with the provided email
+      // Get demo user
       const user: User = {
         ...demoUser,
-        email: credentials.email,
+        email: 'dev@meetezra.bot',
       };
 
       // Generate a mock JWT token

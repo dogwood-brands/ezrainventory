@@ -24,6 +24,7 @@ import {
   Filter,
   Trash2,
   AlertCircle,
+  Info,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
@@ -289,7 +290,7 @@ const BudgetTab: React.FC<{
                   </span>
                 </th>
                 <th className="text-right py-3 px-2 text-xs text-surface-500 uppercase tracking-wide font-medium">
-                  <span className="inline-flex items-center gap-1 cursor-help" title="% of product sales for retail replenishment. Editable per location.">
+                  <span className="inline-flex items-center gap-1 cursor-help" title="Retail Variable % — The percentage of Product Sales allocated for retail inventory replenishment. Unlike fixed portfolio-wide rates, this is editable per location to account for different retail strategies, shelf space, or sales velocity.">
                     Retail Var %
                     <HelpCircle className="w-3 h-3" />
                   </span>
@@ -347,6 +348,24 @@ const BudgetTab: React.FC<{
             Budget loads on the 1st — unspent balance wiped on the {settings.budgetWipeDay}th. No carryover.
           </span>
           <Button size="sm" leftIcon={<FileDown className="w-4 h-4" />}>Export budgets</Button>
+        </div>
+      </Card>
+
+      {/* Retail Variable Explanation */}
+      <Card className="bg-surface-800/50 border-surface-700">
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 rounded-lg bg-ezra-500/10 flex items-center justify-center flex-shrink-0">
+            <HelpCircle className="w-5 h-5 text-ezra-400" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-surface-100">What is Retail Var %?</h3>
+            <p className="text-surface-400 mt-1 text-sm">
+              <strong className="text-surface-200">Retail Variable %</strong> is the percentage of Product Sales allocated for retail inventory replenishment each month. 
+              Unlike Supplies and Service percentages (which are fixed portfolio-wide in Budget Variables), Retail Var % is <strong className="text-surface-200">editable per location</strong> because 
+              each store may have different retail dynamics — larger displays, different product mix, or varying sales velocity. 
+              The default is {settings.retailPct}%, but you can override it for any location directly in the table above.
+            </p>
+          </div>
         </div>
       </Card>
     </div>
@@ -840,6 +859,14 @@ export default function InventoryPage() {
         <SettingsPanel settings={settings} onUpdate={updateSettings} onClose={() => setShowSettings(false)} />
       )}
 
+      {/* Mock Environment Banner */}
+      <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+        <Info className="w-5 h-5 text-amber-400 flex-shrink-0" />
+        <p className="text-sm text-amber-200">
+          <span className="font-medium">Demo Environment</span> — This module displays mock datasets for demonstration purposes. Data shown is not real and does not reflect actual Zenoti account information.
+        </p>
+      </div>
+
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -848,9 +875,12 @@ export default function InventoryPage() {
           </div>
           <div className="flex items-center gap-4">
             <div>
-              <h1 className="text-2xl font-semibold text-surface-100">Ezra Inventory</h1>
+              <h1 className="text-2xl font-semibold text-surface-100">
+                <span className="text-emerald-400">Ezra Inventory</span>
+              </h1>
               <p className="text-surface-400">Budget control and anomaly detection across {inventoryData.activeCount} locations</p>
             </div>
+            <span className="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/30">Under Review</span>
             <span className="px-3 py-1 rounded-full text-sm font-medium bg-ezra-500/10 text-ezra-400">May 2026</span>
             <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-success-500/10 text-success-500">
               <span className="w-1.5 h-1.5 rounded-full bg-success-500" />
@@ -859,7 +889,7 @@ export default function InventoryPage() {
           </div>
         </div>
         <Button variant="secondary" size="sm" leftIcon={<Settings className="w-4 h-4" />} onClick={() => setShowSettings(true)}>
-          Settings
+          Adjust Budget Variables
         </Button>
       </div>
 

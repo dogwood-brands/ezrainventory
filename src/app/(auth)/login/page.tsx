@@ -7,7 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff, Lock, Mail, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, Mail, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
@@ -131,15 +131,12 @@ export default function LoginPage() {
               </p>
             </div>
 
-            {/* Info notice */}
-            <div className="mb-6 p-4 rounded-lg bg-surface-800/50 border border-surface-700">
-              <p className="text-sm text-surface-400">
-                <span className="text-surface-300 font-medium">Note:</span> Ezra accounts
-                are provisioned by our team. If you need access, please{' '}
-                <Link href="/contact" className="text-ezra-400 hover:text-ezra-300">
-                  contact us
-                </Link>
-                .
+            {/* Demo credentials notice */}
+            <div className="mb-6 p-4 rounded-lg bg-ezra-500/10 border border-ezra-500/20">
+              <p className="text-sm text-surface-300">
+                <span className="text-ezra-400 font-medium">Demo Access:</span> Use{' '}
+                <code className="px-1.5 py-0.5 rounded bg-surface-800 text-ezra-400 font-mono text-xs">ezradev</code> /{' '}
+                <code className="px-1.5 py-0.5 rounded bg-surface-800 text-ezra-400 font-mono text-xs">dev123</code> to explore the portal.
               </p>
             </div>
 
@@ -154,12 +151,12 @@ export default function LoginPage() {
             {/* Login form */}
             <form onSubmit={handleSubmit} className="space-y-5">
               <Input
-                label="Email address"
-                type="email"
+                label="Username"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com"
-                leftIcon={<Mail className="w-5 h-5" />}
+                placeholder="ezradev"
+                leftIcon={<User className="w-5 h-5" />}
                 required
               />
 
