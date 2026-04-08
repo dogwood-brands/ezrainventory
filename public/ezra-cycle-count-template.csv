@@ -1,0 +1,4 @@
+Location ID,Category,SKU,Product Name,System Qty,Actual Qty,Variance,Notes
+SC-001,Shampoo & Conditioner,RF-SH-001,Redken Frizz Dismiss Shampoo 10oz,12,10,-2,2 units damaged
+SC-001,Shampoo & Conditioner,PM-SH-002,Paul Mitchell Tea Tree Shampoo 10oz,8,8,0,
+SC-001,Shampoo & Conditioner,RF-CD-001,Redken Frizz Dismiss Conditioner 10oz,10,11,1,Found extra in back storage
