@@ -121,11 +121,10 @@ export function useInventoryLocations(settings: InventorySettings): UseInventory
     return locations.filter((l) => {
       const status = getBandStatus(
         l.supplyPct90,
-        settings.lowerThreshold,
-        settings.upperThreshold,
-        settings.escalateThreshold
+        settings.toleranceLower,
+        settings.toleranceUpper
       );
-      return status !== 'normal';
+      return status === 'outside';
     }).length;
   }, [locations, settings]);
 
@@ -180,11 +179,10 @@ export function useExceptionsAndSpend(settings: InventorySettings): UseException
     return locations.filter((l) => {
       const status = getBandStatus(
         l.supplyPct90,
-        settings.lowerThreshold,
-        settings.upperThreshold,
-        settings.escalateThreshold
+        settings.toleranceLower,
+        settings.toleranceUpper
       );
-      return status !== 'normal';
+      return status === 'outside';
     });
   }, [locations, settings]);
 

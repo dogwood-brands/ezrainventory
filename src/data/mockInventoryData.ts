@@ -9,10 +9,9 @@ export interface InventorySettings {
   servicePct: number;         // Default 8% of Service Sales
   retailPct: number;          // Default 37% of Product Sales
   
-  // Exception thresholds
-  lowerThreshold: number;     // Default 0.8%
-  upperThreshold: number;     // Default 1.2%
-  escalateThreshold: number;  // Default 1.5%
+  // Tolerance band (simple lower/upper range)
+  toleranceLower: number;     // Default 0.75%
+  toleranceUpper: number;     // Default 1.5%
   
   // Budget wipe date
   budgetWipeDay: number;      // Default 25th of month
@@ -26,9 +25,8 @@ export const defaultSettings: InventorySettings = {
   suppliesPct: 1,
   servicePct: 8,
   retailPct: 37,
-  lowerThreshold: 0.8,
-  upperThreshold: 1.2,
-  escalateThreshold: 1.5,
+  toleranceLower: 0.75,
+  toleranceUpper: 1.5,
   budgetWipeDay: 25,
   updatedAt: '2026-04-15T10:30:00Z',
   updatedBy: 'Admin',
@@ -275,46 +273,41 @@ export const calculateTotalBudget = (
   );
 };
 
-// ============ Band Classification (uses dynamic thresholds) ============
+// ============ Band Classification (simple tolerance band) ============
 
-export type BandStatus = 'under' | 'normal' | 'high' | 'escalate';
+export type BandStatus = 'inside' | 'outside';
 
 export const getBandStatus = (
   supplyPct: number,
-  lowerThreshold: number,
-  upperThreshold: number,
-  escalateThreshold: number
+  toleranceLower: number,
+  toleranceUpper: number
 ): BandStatus => {
-  if (supplyPct < lowerThreshold) return 'under';
-  if (supplyPct <= upperThreshold) return 'normal';
-  if (supplyPct <= escalateThreshold) return 'high';
-  return 'escalate';
+  if (supplyPct >= toleranceLower && supplyPct <= toleranceUpper) return 'inside';
+  return 'outside';
 };
 
 export const getBandColor = (status: BandStatus): string => {
   switch (status) {
-    case 'under':
-      return 'info';
-    case 'normal':
+    case 'inside':
       return 'success';
-    case 'high':
+    case 'outside':
       return 'warning';
-    case 'escalate':
-      return 'danger';
   }
 };
 
-export const getBandDescription = (status: BandStatus): string => {
-  switch (status) {
-    case 'under':
-      return 'Below normal — check SOP compliance or under-ordering';
-    case 'normal':
-      return 'Within normal operating band';
-    case 'high':
-      return 'Above normal — review ordering patterns';
-    case 'escalate':
-      return 'Significantly above normal — requires site visit';
+export const getBandDescription = (
+  status: BandStatus,
+  supplyPct: number,
+  toleranceLower: number,
+  toleranceUpper: number
+): string => {
+  if (status === 'inside') {
+    return `Within tolerance band (${toleranceLower}% – ${toleranceUpper}%)`;
   }
+  if (supplyPct < toleranceLower) {
+    return `Below tolerance — ${supplyPct.toFixed(2)}% is under ${toleranceLower}% floor`;
+  }
+  return `Above tolerance — ${supplyPct.toFixed(2)}% exceeds ${toleranceUpper}% ceiling`;
 };
 
 // ============ Inventory Aging Helpers ============

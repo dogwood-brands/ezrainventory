@@ -114,43 +114,33 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onUpdate, onClo
             </div>
           </div>
 
-          {/* Exception Thresholds */}
+          {/* Tolerance Band */}
           <div>
-            <h3 className="text-sm font-medium text-surface-300 mb-3">Exception Thresholds</h3>
-            <div className="grid grid-cols-3 gap-4">
+            <h3 className="text-sm font-medium text-surface-300 mb-3">Tolerance Band</h3>
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-surface-500 mb-1">Lower Band %</label>
+                <label className="block text-xs text-surface-500 mb-1">Lower Bound %</label>
                 <input
                   type="number"
-                  step="0.1"
-                  value={localSettings.lowerThreshold}
-                  onChange={(e) => setLocalSettings({ ...localSettings, lowerThreshold: parseFloat(e.target.value) || 0 })}
+                  step="0.05"
+                  value={localSettings.toleranceLower}
+                  onChange={(e) => setLocalSettings({ ...localSettings, toleranceLower: parseFloat(e.target.value) || 0 })}
                   className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 text-sm"
                 />
               </div>
               <div>
-                <label className="block text-xs text-surface-500 mb-1">Upper Band %</label>
+                <label className="block text-xs text-surface-500 mb-1">Upper Bound %</label>
                 <input
                   type="number"
-                  step="0.1"
-                  value={localSettings.upperThreshold}
-                  onChange={(e) => setLocalSettings({ ...localSettings, upperThreshold: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-surface-500 mb-1">Escalate %</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={localSettings.escalateThreshold}
-                  onChange={(e) => setLocalSettings({ ...localSettings, escalateThreshold: parseFloat(e.target.value) || 0 })}
+                  step="0.05"
+                  value={localSettings.toleranceUpper}
+                  onChange={(e) => setLocalSettings({ ...localSettings, toleranceUpper: parseFloat(e.target.value) || 0 })}
                   className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 text-sm"
                 />
               </div>
             </div>
             <p className="text-xs text-surface-500 mt-2">
-              Locations below {localSettings.lowerThreshold}% or above {localSettings.upperThreshold}% will be flagged. Above {localSettings.escalateThreshold}% requires escalation.
+              Locations with supply cost % outside the {localSettings.toleranceLower}% – {localSettings.toleranceUpper}% range will be flagged for review.
             </p>
           </div>
 
@@ -225,7 +215,7 @@ const BudgetTab: React.FC<{
   settings,
   lastSyncedAt,
 }) => {
-  const avgStatus = getBandStatus(avgSupplyPct, settings.lowerThreshold, settings.upperThreshold, settings.escalateThreshold);
+  const avgStatus = getBandStatus(avgSupplyPct, settings.toleranceLower, settings.toleranceUpper);
 
   return (
     <div className="space-y-6">
@@ -251,7 +241,7 @@ const BudgetTab: React.FC<{
           <span className="text-xs text-surface-500 uppercase tracking-wide">Portfolio Avg Supply %</span>
           <div className={cn(
             'text-2xl font-semibold mt-1',
-            avgStatus === 'normal' ? 'text-success-500' : avgStatus === 'high' ? 'text-warning-500' : avgStatus === 'escalate' ? 'text-danger-500' : 'text-info-500'
+            avgStatus === 'inside' ? 'text-success-500' : 'text-warning-500'
           )}>
             {avgSupplyPct.toFixed(2)}%
           </div>
@@ -398,8 +388,8 @@ const ExceptionsTab: React.FC<{ settings: InventorySettings }> = ({ settings }) 
       
       if (chartInstance.current) chartInstance.current.destroy();
 
-      const upperBound = trendData.map(() => settings.upperThreshold);
-      const lowerBound = trendData.map(() => settings.lowerThreshold);
+      const upperBound = trendData.map(() => settings.toleranceUpper);
+      const lowerBound = trendData.map(() => settings.toleranceLower);
 
       chartInstance.current = new Chart(chartRef.current!, {
         type: 'line',
@@ -407,8 +397,8 @@ const ExceptionsTab: React.FC<{ settings: InventorySettings }> = ({ settings }) 
           labels: trendData.map((d) => d.month),
           datasets: [
             { label: 'Portfolio Avg', data: trendData.map((d) => d.value), borderColor: '#06b6d4', backgroundColor: 'rgba(6, 182, 212, 0.1)', tension: 0.3, fill: true, pointRadius: 4, pointBackgroundColor: '#06b6d4' },
-            { label: `Upper (${settings.upperThreshold}%)`, data: upperBound, borderColor: '#f59e0b', borderDash: [5, 5], borderWidth: 1, pointRadius: 0, fill: false },
-            { label: `Lower (${settings.lowerThreshold}%)`, data: lowerBound, borderColor: '#3b82f6', borderDash: [5, 5], borderWidth: 1, pointRadius: 0, fill: false },
+            { label: `Upper (${settings.toleranceUpper}%)`, data: upperBound, borderColor: '#f59e0b', borderDash: [5, 5], borderWidth: 1, pointRadius: 0, fill: false },
+            { label: `Lower (${settings.toleranceLower}%)`, data: lowerBound, borderColor: '#3b82f6', borderDash: [5, 5], borderWidth: 1, pointRadius: 0, fill: false },
           ],
         },
         options: {
@@ -427,13 +417,8 @@ const ExceptionsTab: React.FC<{ settings: InventorySettings }> = ({ settings }) 
   }, [trendData, settings]);
 
   const getStatusColor = (pct: number) => {
-    const status = getBandStatus(pct, settings.lowerThreshold, settings.upperThreshold, settings.escalateThreshold);
-    switch (status) {
-      case 'under': return '#3b82f6';
-      case 'normal': return '#22c55e';
-      case 'high': return '#f59e0b';
-      case 'escalate': return '#ef4444';
-    }
+    const status = getBandStatus(pct, settings.toleranceLower, settings.toleranceUpper);
+    return status === 'inside' ? '#22c55e' : '#f59e0b';
   };
 
   const getCategoryBadge = (category: string) => {
@@ -448,22 +433,14 @@ const ExceptionsTab: React.FC<{ settings: InventorySettings }> = ({ settings }) 
   return (
     <div className="space-y-6">
       {/* Legend */}
-      <div className="flex flex-wrap gap-4">
-        <div className="flex items-center gap-2 text-sm text-surface-400">
-          <span className="w-3 h-3 rounded-full bg-info-500" />
-          Under {settings.lowerThreshold}% — possible SOP non-compliance
-        </div>
+      <div className="flex flex-wrap gap-6">
         <div className="flex items-center gap-2 text-sm text-surface-400">
           <span className="w-3 h-3 rounded-full bg-success-500" />
-          {settings.lowerThreshold}–{settings.upperThreshold}% — normal
+          Inside tolerance ({settings.toleranceLower}% – {settings.toleranceUpper}%)
         </div>
         <div className="flex items-center gap-2 text-sm text-surface-400">
           <span className="w-3 h-3 rounded-full bg-warning-500" />
-          {settings.upperThreshold}–{settings.escalateThreshold}% — review
-        </div>
-        <div className="flex items-center gap-2 text-sm text-surface-400">
-          <span className="w-3 h-3 rounded-full bg-danger-500" />
-          Over {settings.escalateThreshold}% — escalate
+          Outside tolerance — flagged for review
         </div>
       </div>
 
@@ -571,11 +548,11 @@ const ExceptionsTab: React.FC<{ settings: InventorySettings }> = ({ settings }) 
       <Card>
         <h3 className="text-sm font-medium text-surface-100 mb-4">Flagged Locations</h3>
         {flaggedLocations.length === 0 ? (
-          <p className="text-surface-500 text-sm">No flagged locations — all within normal band.</p>
+          <p className="text-surface-500 text-sm">No flagged locations — all within tolerance band ({settings.toleranceLower}% – {settings.toleranceUpper}%).</p>
         ) : (
           <div className="space-y-3">
             {flaggedLocations.map((loc) => {
-              const status = getBandStatus(loc.supplyPct90, settings.lowerThreshold, settings.upperThreshold, settings.escalateThreshold);
+              const status = getBandStatus(loc.supplyPct90, settings.toleranceLower, settings.toleranceUpper);
               return (
                 <div key={loc.id} className="flex items-center gap-4 py-3 border-b border-surface-800 last:border-0">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: `${getStatusColor(loc.supplyPct90)}20` }}>
@@ -587,7 +564,11 @@ const ExceptionsTab: React.FC<{ settings: InventorySettings }> = ({ settings }) 
                       <span className="text-xs text-surface-500">{loc.code}</span>
                       {loc.override && <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-warning-500/10 text-warning-500">Override logged</span>}
                     </div>
-                    <p className="text-xs text-surface-500 mt-0.5">{getBandDescription(status)}</p>
+                    <p className="text-xs text-surface-500 mt-0.5">
+                      {loc.supplyPct90 < settings.toleranceLower 
+                        ? `Below ${settings.toleranceLower}% floor` 
+                        : `Above ${settings.toleranceUpper}% ceiling`}
+                    </p>
                   </div>
                   <div className="text-lg font-semibold" style={{ color: getStatusColor(loc.supplyPct90) }}>{loc.supplyPct90.toFixed(2)}%</div>
                 </div>
